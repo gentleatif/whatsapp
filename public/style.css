@@ -1,0 +1,55 @@
+.whatsapp__apiContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.hide {
+  display: none;
+}
+.show {
+  display: block;
+}
+
+a:link {
+  text-decoration: none;
+  color: grey;
+}
+a:hover {
+  text-decoration: none;
+  color: white;
+}
+.btn {
+  color: grey;
+}
+.btn-main {
+  color: white;
+}
+.btn:hover {
+  text-decoration: none;
+  color: white;
+}
+/* html,
+body {
+  /* background-image: url("whatsapp__background.jpg"); */
+.main_div {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+ul {
+  text-decoration: none;
+  list-style: none;
+}
+.qr {
+  background: none !important;
+  z-index: 1;
+}
+
+footer {
+  position: absolute;
+  bottom: 5px;
+  left: 45vw;
+}

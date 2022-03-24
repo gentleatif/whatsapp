@@ -1,4 +1,4 @@
 node_modules
-whatsapp-session*.json
+session.json
 package-lock.json
 downloaded-media/
