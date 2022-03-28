@@ -1,11 +1,5 @@
-const {
-  Client,
-  MessageMedia,
-  LegacySessionAuth,
-  NoAuth,
-} = require("whatsapp-web.js");
+const { Client, MessageMedia, NoAuth } = require("whatsapp-web.js");
 const csv = require("csvtojson");
-
 const express = require("express");
 const { body, validationResult } = require("express-validator");
 const socketIO = require("socket.io");
@@ -18,13 +12,11 @@ const axios = require("axios");
 const mime = require("mime-types");
 const vcard = require("vcard-json");
 const bodyParser = require("body-parser");
-
-const { format } = require("path");
-const { log } = require("console");
-const { response } = require("express");
-
+const passport = require("passport");
 const port = 8000 || process.env.PORT;
-
+const authRoutes = require("./routes/auth");
+const { log } = require("console");
+// const isLoggedIn = require("./helpers/auth");
 const app = express();
 // Note that this option available for versions 1.0.0 and newer.
 // for parsing file from
@@ -33,8 +25,11 @@ app.use(
     useTempFiles: true,
     tempFileDir: "/tmp/",
   })
-); // parse application/x-www-form-urlencoded
+);
+// parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(express.urlencoded({ extended: true }));
 
 // parse application/json
 app.use(bodyParser.json());
@@ -50,7 +45,8 @@ app.use(
     extended: true,
   })
 );
-
+// my routes
+app.use("/", authRoutes);
 // Path where the session data will be stored
 // const SESSION_FILE_PATH = "./session.json";
 
@@ -68,12 +64,6 @@ app.use(
 // });
 const client = new Client({
   authStrategy: new NoAuth(),
-});
-
-app.get("/", (req, res) => {
-  res.sendFile("index.html", {
-    root: __dirname,
-  });
 });
 
 client.on("message", (msg) => {
@@ -151,11 +141,11 @@ io.on("connection", function (socket) {
     });
   });
 
-  client.on("ready", () => {
+  client.on("ready", (e) => {
     socket.emit("ready", "Whatsapp is ready!");
     socket.emit("message", "Whatsapp is ready!");
   });
-  client.on("authenticated", () => {
+  client.on("authenticated", (e) => {
     socket.emit("authenticated", "Whatsapp is authenticated!");
     socket.emit("message", "Whatsapp is authenticated!");
     client.emit("redirect", "/send-message");
@@ -187,21 +177,50 @@ const checkRegisteredNumber = async function (number) {
   const isRegistered = await client.isRegisteredUser(number);
   return isRegistered;
 };
+function isLoggedIn(req, res, next) {
+  // if user is authenticated in the session, carry on
 
+  if (req.isAuthenticated() && req.user.email == "airmenatif@gmail.com")
+    return next();
+
+  // if they aren't redirect them to the home page
+  res.redirect("/");
+}
+app.get("/scan", isLoggedIn, (req, res) => {
+  res.sendFile("index.html", {
+    root: __dirname,
+  });
+});
+
+// send user for auth when clicked on login icon
+
+app.get("/logout", function (req, res) {
+  req.session.destroy(function (err) {
+    res.clearCookie("remember_me", { path: "/success" });
+
+    req.logout();
+    res.redirect("/"); //Inside a callback… bulletproof!
+  });
+});
+app.get("/", (req, res) => {
+  res.sendFile("auth.html", {
+    root: __dirname,
+  });
+});
 // Send message
-app.get("/send-message", (req, res) => {
+app.get("/send-message", isLoggedIn, (req, res) => {
   res.sendFile("message.html", {
     root: __dirname,
   });
 });
 //visit bulk msg page
-app.get("/send-bulkmsg", (req, res) => {
+app.get("/send-bulkmsg", isLoggedIn, (req, res) => {
   res.sendFile("bulkMsg.html", {
     root: __dirname,
   });
 });
 //visit bulk msg page
-app.get("/send-media", (req, res) => {
+app.get("/send-media", isLoggedIn, (req, res) => {
   res.sendFile("bulkMedia.html", {
     root: __dirname,
   });
@@ -221,7 +240,7 @@ app.post(
       });
     }
 
-    const formattedNo = `${req.body.number}@c.us`;
+    const formattedNo = `91${req.body.number}@c.us`;
 
     const message = req.body.message;
 
@@ -253,18 +272,58 @@ app.post(
 
 // bulk message
 app.post("/send-bulkmsg", async (req, res) => {
-  const usernumbers = req.body.number;
+  // Array of No.
+  const userEnteredNo = req.body.number;
+  console.log(userEnteredNo);
   const message = req.body.message;
-  const csvContacts = await csv().fromFile(req.files.file.tempFilePath);
-
-  // two method of rendering--> indivual no. or .vcf file
-  // first method if .vcf given
-  if (req.files != null) {
+  console.log(message);
+  // Entering different block on the basis of mimetype
+  // 1. Invalid file selected and and Not Entered any No
+  if (req.files == null && userEnteredNo[4] == undefined) {
+    console.log("not provided any value");
+    res.status(400).json({
+      status: false,
+      response: "Please Select a valid .vcf/.csv Contacts",
+    });
+  }
+  //2. userEntered No
+  if (req.files == null && userEnteredNo[4]) {
+    console.log("User Entered Mobile No");
+    // format userEntered no in desired form
+    let formattedNo = [];
+    const UserInputNo = JSON.parse(userEnteredNo);
+    UserInputNo.forEach((num) => {
+      formattedNo.push(`91${num}@c.us`);
+    });
+    console.log(formattedNo);
+    // send message for each no.
+    formattedNo.forEach((singleNo, index, array) => {
+      const interval = 5000; // 5 sec wait for each send
+      setTimeout(function () {
+        console.log(index, singleNo, array.length - 1);
+        client
+          .sendMessage(singleNo, message)
+          .then((d) => {
+            if (index == array.length - 1) {
+              res.status(200).json({
+                status: true,
+                response: "Messages Sent Successfully To All Contacts",
+              });
+            }
+          })
+          .catch((e) => {
+            console.log("rejected");
+          });
+      }, index * interval);
+    });
+  }
+  //3. vcf file No
+  if (req.files && req.files.file.mimetype == "text/x-vcard") {
+    console.log("User Provided vcf contacts");
     vcard.parseVcardFile(req.files.file.tempFilePath, function (err, contacts) {
       if (err) console.log("oops:" + err);
       else {
-        console.log(contacts);
-        // format all no in desired form
+        // format vcf no in desired form
         let formattedNo = [];
         const results = contacts.filter(
           (contact) => contact.phone[0] != undefined
@@ -288,7 +347,7 @@ app.post("/send-bulkmsg", async (req, res) => {
             client
               .sendMessage(singleNo, message)
               .then((d) => {
-                if (index == array.length) {
+                if (index == array.length - 1) {
                   res.status(200).json({
                     status: true,
                     response: "Messages Sent Successfully To All Contacts",
@@ -302,26 +361,33 @@ app.post("/send-bulkmsg", async (req, res) => {
         });
       }
     });
-  } else {
-    console.log("not in req.file route");
-    console.log();
-    // format all no in desired form
-    let formattedNo = [];
-    const UserInputNo = JSON.parse(usernumbers);
-    UserInputNo.forEach((num) => {
-      formattedNo.push(`${num}@c.us`);
-    });
-    console.log(formattedNo);
-    // send message for each no.
-    formattedNo.forEach((singleNo, index) => {
-      const interval = 10000; // 10 sec wait for each send
+  }
+  //4. csv file No
+  if (req.files && req.files.file.mimetype == "application/vnd.ms-excel") {
+    console.log("User Provided csv contacts");
+    // retrieving csv contacts
+    let contacts = await csv().fromFile(req.files.file.tempFilePath);
+    // filter out undefined contact
+    contacts = contacts.filter((contact) => contact.Phone != undefined);
+    contacts = contacts.map((contact) => `91${contact.Phone}@c.us`);
+    contacts.forEach((singleNo, index, array) => {
+      const interval = 5000; // 5 sec wait for each send
       setTimeout(function () {
-        client.sendMessage(singleNo, message);
+        console.log(index, singleNo, array.length);
+        client
+          .sendMessage(singleNo, message)
+          .then((d) => {
+            if (index == array.length - 1) {
+              res.status(200).json({
+                status: true,
+                response: "Messages Sent Successfully To All Contacts",
+              });
+            }
+          })
+          .catch((e) => {
+            console.log("rejected");
+          });
       }, index * interval);
-    });
-    res.status(200).json({
-      status: true,
-      response: "your message are being sent",
     });
   }
 });
@@ -329,81 +395,148 @@ app.post("/send-bulkmsg", async (req, res) => {
 // Send media AND bulk message
 
 app.post("/send-media", async (req, res) => {
-  const file = req.files.file;
-  console.log(file);
-  const data = fs.readFileSync(file.tempFilePath).toString("base64");
-  
-  const usernumbers = req.body.number;
-  const caption = req.body.caption;
-  const media = new MessageMedia(file.mimetype, data, file.name);
-  // Two method to select mobile no. direct typing or .vcf
+  const file = JSON.parse(req.body.file);
 
-  if (req.files.contacts != null) {
-    vcard.parseVcardFile(
-      req.files.contacts.tempFilePath,
-      function (err, contacts) {
-        if (err) console.log("oops:" + err);
-        else {
-          // format all no in desired form
-          let formattedNo = [];
-          const results = contacts.filter(
-            (contact) => contact.phone[0] != undefined
-          );
-          results.forEach((result) => {
-            formattedNo.push(`${result.phone[0].value}@c.us`);
-          });
-          const pureIndianFormat = formattedNo.filter((no) => {
-            return no.startsWith("+91") && no.length == 20;
-          });
-          const finalFormattedVcfNo = [];
-          pureIndianFormat.forEach((number, index) => {
-            let newNo = number.replace("+", "");
-            newNo = newNo.replace(/ +/g, "");
-            finalFormattedVcfNo.push(newNo);
-          });
-          finalFormattedVcfNo.forEach((singleNo, index) => {
-            const interval = 5000; // 5 sec wait for each send
-            setTimeout(function () {
-              console.log(index, singleNo);
-              client
-                .sendMessage(singleNo, media, {
-                  caption: caption,
-                })
-                .then((data) => {
-                  console.log("accepted");
-                })
-                .catch((data) => {
-                  console.log("rejected");
-                });
-            }, index * interval);
-          });
-        }
-      }
-    );
-  } else {
-    console.log("not in req.file route");
-    // format all no in desired form
+  console.log(file);
+  const userEnteredNo = req.body.number; //array of no.
+  const data = file.map((singleFile) => {
+    return fs.readFileSync(singleFile.tempFilePath).toString("base64");
+  });
+  console.log(data);
+  const images = data.map((singleData) => {
+    // array of img
+    return new MessageMedia(file.mimetype, singleData, file.name);
+  });
+
+  // reformat data
+  const imageAndCaption = images.map((image, index) => {
+    const caption = captions[index];
+    return {
+      images,
+      caption,
+    };
+  });
+  console.log(imageAndCaption);
+  console.log(message);
+  // Entering different block on the basis of mimetype
+  // 1. Invalid file selected and and Not Entered any No
+  if (req.files == null && userEnteredNo[4] == undefined) {
+    console.log("not provided any value");
+    res.status(400).json({
+      status: false,
+      response: "Please Select a valid .vcf/.csv Contacts",
+    });
+  }
+  //2. userEntered No
+  if (req.files == null && userEnteredNo[4]) {
+    console.log("User Entered Mobile No");
+    // format userEntered no in desired form
     let formattedNo = [];
-    const UserInputNo = JSON.parse(req.body.number);
+    const UserInputNo = JSON.parse(userEnteredNo);
     UserInputNo.forEach((num) => {
-      formattedNo.push(`${num}@c.us`);
+      formattedNo.push(`91${num}@c.us`);
     });
     console.log(formattedNo);
     // send message for each no.
-    formattedNo.forEach((singleNo, index) => {
-      const interval = 10000; // 10 sec wait for each send
+    formattedNo.forEach((singleNo, index, array) => {
+      const interval = 5000; // 5 sec wait for each send
       setTimeout(function () {
-        client.sendMessage(singleNo, media, {
-          caption: caption,
-        });
+        console.log(index, singleNo, array.length - 1);
+        client
+          .sendMessage(singleNo, media, {
+            caption: caption,
+          })
+          .then((d) => {
+            if (index == array.length - 1) {
+              res.status(200).json({
+                status: true,
+                response: "Messages Sent Successfully To All Contacts",
+              });
+            }
+          })
+          .catch((e) => {
+            console.log("rejected");
+          });
       }, index * interval);
     });
-    res.status(200).json({
-      status: true,
-      response: "your message are being sent",
+  }
+  //3. vcf file No
+  if (req.files && req.files.file.mimetype == "text/x-vcard") {
+    console.log("User Provided vcf contacts");
+    vcard.parseVcardFile(req.files.file.tempFilePath, function (err, contacts) {
+      if (err) console.log("oops:" + err);
+      else {
+        // format vcf no in desired form
+        let formattedNo = [];
+        const results = contacts.filter(
+          (contact) => contact.phone[0] != undefined
+        );
+        results.forEach((result) => {
+          formattedNo.push(`${result.phone[0].value}@c.us`);
+        });
+        const pureIndianFormat = formattedNo.filter((no) => {
+          return no.startsWith("+91") && no.length == 20;
+        });
+        const finalFormattedVcfNo = [];
+        pureIndianFormat.forEach((number, index) => {
+          let newNo = number.replace("+", "");
+          newNo = newNo.replace(/ +/g, "");
+          finalFormattedVcfNo.push(newNo);
+        });
+        finalFormattedVcfNo.forEach((singleNo, index, array) => {
+          const interval = 5000; // 5 sec wait for each send
+          setTimeout(function () {
+            console.log(index, singleNo, array.length);
+            client
+              .sendMessage(singleNo, media, {
+                caption: caption,
+              })
+              .then((d) => {
+                if (index == array.length - 1) {
+                  res.status(200).json({
+                    status: true,
+                    response: "Messages Sent Successfully To All Contacts",
+                  });
+                }
+              })
+              .catch((e) => {
+                console.log("rejected");
+              });
+          }, index * interval);
+        });
+      }
     });
   }
-  // Two method to select mobile no. direct typing or .vcf end
+  //4. csv file No
+  if (req.files && req.files.file.mimetype == "application/vnd.ms-excel") {
+    console.log("User Provided csv contacts");
+    // retrieving csv contacts
+    let contacts = await csv().fromFile(req.files.file.tempFilePath);
+    // filter out undefined contact
+    contacts = contacts.filter((contact) => contact.Phone != undefined);
+    contacts = contacts.map((contact) => `91${contact.Phone}@c.us`);
+    contacts.forEach((singleNo, index, array) => {
+      const interval = 5000; // 5 sec wait for each send
+      setTimeout(function () {
+        console.log(index, singleNo, array.length);
+        client
+          .sendMessage(singleNo, media, {
+            caption: caption,
+          })
+          .then((d) => {
+            if (index == array.length - 1) {
+              res.status(200).json({
+                status: true,
+                response: "Messages Sent Successfully To All Contacts",
+              });
+            }
+          })
+          .catch((e) => {
+            console.log("rejected");
+          });
+      }, index * interval);
+    });
+  }
 });
 
 const findGroupByName = async function (name) {

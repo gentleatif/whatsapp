@@ -1,3 +1,7 @@
+body {
+  overflow-y: none;
+}
+
 .whatsapp__apiContainer {
   display: grid;
   grid-template-columns: 1fr;
@@ -52,4 +56,10 @@ footer {
   position: absolute;
   bottom: 5px;
   left: 45vw;
+}
+.form__width {
+  width: 73%;
+}
+.form__number {
+  width: 80vw;
 }

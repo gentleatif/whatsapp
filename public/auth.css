@@ -1,0 +1,226 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400&display=swap");
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+h1 {
+  text-align: center;
+  font-family: "Poppins";
+  font-weight: 400;
+}
+
+.btn-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.fb-login-button {
+  margin-top: 1rem;
+}
+
+.description {
+  font-family: "Poppins";
+}
+.privacy-text {
+  font-size: x-small;
+  color: rgba(0, 0, 0, 0.5);
+  width: 56%;
+  text-align: center;
+  font-family: "Poppins";
+}
+.auth-btn {
+  text-decoration: none;
+}
+/*  */
+
+.google-btn {
+  margin: 25px;
+  width: 300px;
+  min-width: 184px;
+  max-width: 240px;
+  height: 42px;
+  background-color: #fcfcfc;
+  border-radius: 2px;
+  box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  cursor: hand;
+  align-self: center;
+  user-select: none;
+  transition: all 400ms ease 0s;
+  display: flex;
+}
+.google-btn .google-icon-wrapper {
+  position: absolute;
+  margin-top: 1px;
+  margin-left: 1px;
+  width: 40px;
+  height: 40px;
+  border-radius: 2px;
+  user-select: none;
+}
+.google-btn .google-icon-svg {
+  position: absolute;
+  margin-top: 11px;
+  margin-left: 11px;
+  width: 18px;
+  height: 18px;
+  user-select: none;
+}
+.google-btn .btn-text {
+  float: right;
+  margin: 10px 14px 0px 68px;
+  color: #757575;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  font-family: Roboto;
+  user-select: none;
+  position: relative;
+  top: 2px;
+}
+.google-btn:hover {
+  box-shadow: 0 0 3px 3px rgba(66, 133, 244, 0.3);
+  user-select: none;
+}
+.google-btn:active {
+  box-shadow: 0 1px 1px #757575;
+  background: #f8f8f8;
+  color: #fff;
+  user-select: none;
+}
+
+.normal-btn {
+  margin: 25px;
+  width: auto;
+  display: inline-block;
+  min-width: auto;
+  max-width: 184px;
+  height: 42px;
+  background-color: #fcfcfc;
+  border-radius: 2px;
+  box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  cursor: hand;
+  align-self: center;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  transition: all 400ms ease 0s;
+}
+.normal-btn .btn-text {
+  float: left;
+  margin: 11px 14px 11px 14px;
+  color: #757575;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  font-family: Roboto;
+  user-select: none;
+}
+.normal-btn:hover {
+  box-shadow: 0 3px 8px rgba(117, 117, 117, 0.5);
+  user-select: none;
+}
+.normal-btn:active {
+  box-shadow: 0 1px 1px #757575;
+  background: #f8f8f8;
+  color: #fff;
+  user-select: none;
+}
+/* fb */
+
+/* Shared */
+.loginBtn {
+  box-sizing: border-box;
+  position: relative;
+  /* width: 13em;  - apply for fixed size */
+  margin: 0.2em;
+  padding: 0 15px 0 46px;
+  border: none;
+  text-align: left;
+  line-height: 34px;
+  white-space: nowrap;
+  border-radius: 0.2em;
+  font-size: 16px;
+  color: #fff;
+}
+.loginBtn:before {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 100%;
+}
+.loginBtn:focus {
+  outline: none;
+}
+.loginBtn:active {
+  box-shadow: inset 0 0 0 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Facebook */
+a.fb {
+  display: inline-block;
+  padding: 6px 14px 6px 14px;
+  background: #3578e5;
+  font-family: Helvetica, Arial, sans-serif;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 20, 0.4);
+  text-decoration: none;
+  line-height: 1;
+  position: relative;
+  border-radius: 5px;
+  font-weight: 500px;
+  letter-spacing: 1px;
+}
+
+.connect:before {
+  display: inline-block;
+  position: relative;
+  /* background-image: url("assets/fb-icon.png"); */
+  height: 23px;
+  background-repeat: no-repeat;
+  background-position: 0px 3px;
+  text-indent: -9999px;
+  text-align: center;
+  width: 2px;
+  line-height: 23px;
+  content: "f";
+  padding-right: 5px;
+}
+.fb-icon-img {
+  padding-top: 4px;
+  width: 26px;
+  height: 22px;
+  background-color: #fff;
+  border-radius: 100%;
+  position: relative;
+  right: 10px;
+  bottom: 1px;
+  top: 3px;
+  margin: 0;
+}
+.google-anchor {
+  margin: 0;
+  padding: 0;
+}
+.fb-bold {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  bottom: 4px;
+}

@@ -31,7 +31,6 @@ form.addEventListener("submit", function (e) {
   // make all data as form
   const formData = new FormData();
 
-  formData.append("file", file);
   formData.append("number", JSON.stringify(arrayOfNum));
   formData.append("message", message);
 

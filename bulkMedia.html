@@ -19,42 +19,94 @@
   <body>
     <div class="container">
       <div class="whatsapp__apiContainer">
-        <div class="heading">
-          <h1 class="text-center mt-5 text-primary">
-            Whatsapp Bulk Media And Messaging
-          </h1>
+        <div class="heading mx-auto">
+          <h1 class="mt-5 text-primary">Simple Multimedia Messaging app</h1>
         </div>
         <form enctype="multipart/form-data" action="">
           <div class="mb-3">
             <label for="receiver" class="form-label">Whatsapp Mobile No</label>
             <input
               name="number"
-              class="form-control"
+              class="form-control form__number"
               id="number"
               placeholder="Receiepient's Whatsapp Number"
             />
           </div>
           <!-- contact picker  -->
-          <label for="contact">Upload Contact</label>
+          <label for="contact">Upload Contacts(.vcf/.csv)</label>
           <div class="mb-3">
             <input id="contact" name="contactfile" type="file" />
           </div>
           <!-- contact picker end -->
-          <!-- Media Picker  -->
-          <label for="upload">Upload File(img/doc/.apk/zip)</label>
-          <div class="mb-2">
-            <input id="upload" name="uploadfile" type="file" multiple />
+          <!-- Media Picker n Caption -->
+          <p>Upload File (img/doc/.apk/zip)</p>
+          <div class="d-flex my-4">
+            <div class="caption__div d-flex flex-column">
+              <div class="mb-2">
+                <input id="upload" name="uploadfile" type="file" />
+              </div>
+              <div class="mb-2">
+                <label for="message" class="form-label">Caption</label>
+                <textarea
+                  name="caption"
+                  class="form-control form__width"
+                  id="message"
+                  rows="1"
+                ></textarea>
+              </div>
+            </div>
+            <!--Media picker n Caption end -->
+            <!-- Media Picker n Caption -->
+
+            <div class="caption__div d-flex flex-column">
+              <div class="mb-2 firstdiv">
+                <input id="upload" name="uploadfile" type="file" />
+              </div>
+              <div class="mb-2 brother">
+                <label for="message" class="form-label">Caption</label>
+                <textarea
+                  name="caption"
+                  class="form-control form__width"
+                  id="message"
+                  rows="1"
+                ></textarea>
+              </div>
+            </div>
+            <!--Media picker n Caption end -->
+            <!-- Media Picker n Caption -->
+            <div class="caption__div d-flex flex-column">
+              <div class="mb-2">
+                <input id="upload" name="uploadfile" type="file" />
+              </div>
+              <div class="mb-2">
+                <label for="message" class="form-label">Caption</label>
+                <textarea
+                  name="caption"
+                  class="form-control form__width"
+                  id="message"
+                  rows="1"
+                ></textarea>
+              </div>
+            </div>
+            <!--Media picker n Caption end -->
+            <!-- Media Picker n Caption -->
+            <div class="caption__div d-flex flex-column">
+              <div class="mb-2">
+                <input id="upload" name="uploadfile" type="file" />
+              </div>
+              <div class="mb-2">
+                <label for="message" class="form-label">Caption</label>
+                <textarea
+                  name="caption"
+                  class="form-control form__width"
+                  id="message"
+                  rows="1"
+                ></textarea>
+              </div>
+            </div>
+            <!--Media picker n Caption end -->
           </div>
-          <!--Media picker end -->
-          <div class="mb-3">
-            <label for="message" class="form-label">Caption</label>
-            <textarea
-              name="caption"
-              class="form-control"
-              id="message"
-              rows="3"
-            ></textarea>
-          </div>
+
           <button
             id="btn"
             type="submit"
@@ -73,8 +125,6 @@
       <div class="alert alert-success mt-3 hide">
         <strong>Success! </strong> Your messages are being sent
       </div>
-
-      <!--  -->
     </div>
     <!-- Custom Script -->
     <script src="bulkMedia.js" type="text/javascript"></script>
