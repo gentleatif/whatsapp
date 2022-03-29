@@ -33,6 +33,7 @@ form.addEventListener("submit", function (e) {
 
   formData.append("number", JSON.stringify(arrayOfNum));
   formData.append("message", message);
+  formData.append("file", file);
 
   postData("http://localhost:8000/send-bulkmsg", formData).then((data) => {
     console.log(data); // JSON data parsed by `data.json()` call
