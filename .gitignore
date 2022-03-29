@@ -2,3 +2,6 @@ node_modules
 session.json
 package-lock.json
 downloaded-media/
+npm-debug.log
+.DS_Store
+/*.env

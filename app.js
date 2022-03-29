@@ -13,10 +13,8 @@ const mime = require("mime-types");
 const vcard = require("vcard-json");
 const bodyParser = require("body-parser");
 const passport = require("passport");
-const port = 8000 || process.env.PORT;
+const port = process.env.PORT || 8000;
 const authRoutes = require("./routes/auth");
-const formidable = require("formidable");
-const { image } = require("qr-image");
 
 // const isLoggedIn = require("./helpers/auth");
 const app = express();
