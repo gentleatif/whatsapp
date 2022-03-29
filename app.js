@@ -15,7 +15,8 @@ const bodyParser = require("body-parser");
 const passport = require("passport");
 const port = 8000 || process.env.PORT;
 const authRoutes = require("./routes/auth");
-const { log } = require("console");
+const formidable = require("formidable");
+
 // const isLoggedIn = require("./helpers/auth");
 const app = express();
 // Note that this option available for versions 1.0.0 and newer.
@@ -47,21 +48,7 @@ app.use(
 );
 // my routes
 app.use("/", authRoutes);
-// Path where the session data will be stored
-// const SESSION_FILE_PATH = "./session.json";
 
-// // Load the session data if it has been previously saved
-// let sessionData;
-// if (fs.existsSync(SESSION_FILE_PATH)) {
-//   sessionData = require(SESSION_FILE_PATH);
-// }
-
-// Use the saved values
-// const client = new Client({
-//   authStrategy: new LegacySessionAuth({
-//     session: sessionData,
-//   }),
-// });
 const client = new Client({
   authStrategy: new NoAuth(),
 });
@@ -395,29 +382,66 @@ app.post("/send-bulkmsg", async (req, res) => {
 // Send media AND bulk message
 
 app.post("/send-media", async (req, res) => {
-  const file = JSON.parse(req.body.file);
+  const file1 = req.files.file1;
+  const file2 = req.files.file2;
+  const file3 = req.files.file3;
+  const file4 = req.files.file4;
 
-  console.log(file);
+  const imgWithCaption1 = {
+    img: file1,
+    caption: req.body.caption1,
+  };
+  const imgWithCaption2 = {
+    img: file2,
+    caption: req.body.caption2,
+  };
+  const imgWithCaption3 = {
+    img: file3,
+    caption: req.body.caption3,
+  };
+  const imgWithCaption4 = {
+    img: file4,
+    caption: req.body.caption4,
+  };
+  let file = [
+    imgWithCaption1,
+    imgWithCaption2,
+    imgWithCaption3,
+    imgWithCaption4,
+  ];
+
+  file = file.filter((singlefile) => {
+    return singlefile.img != undefined;
+  });
+
   const userEnteredNo = req.body.number; //array of no.
   const data = file.map((singleFile) => {
-    return fs.readFileSync(singleFile.tempFilePath).toString("base64");
-  });
-  console.log(data);
-  const images = data.map((singleData) => {
-    // array of img
-    return new MessageMedia(file.mimetype, singleData, file.name);
+    const data = {
+      mimetype: singleFile.img.mimetype,
+      name: singleFile.img.name,
+      data: fs.readFileSync(singleFile.img.tempFilePath).toString("base64"),
+      caption: singleFile.caption,
+    };
+    return data;
   });
 
-  // reformat data
-  const imageAndCaption = images.map((image, index) => {
-    const caption = captions[index];
-    return {
-      images,
-      caption,
-    };
+  data.forEach((singleData) => {
+    console.log(singleData.caption);
   });
-  console.log(imageAndCaption);
-  console.log(message);
+  const images = data.map((singleData) => {
+    const imgData = {
+      caption: singleData.caption,
+      media: new MessageMedia(
+        singleData.img.mimetype,
+        singleData.img.data,
+        singleData.img.name
+      ),
+    };
+    return imgData;
+  });
+
+  // console.log(images.caption);
+
   // Entering different block on the basis of mimetype
   // 1. Invalid file selected and and Not Entered any No
   if (req.files == null && userEnteredNo[4] == undefined) {
@@ -460,7 +484,7 @@ app.post("/send-media", async (req, res) => {
       }, index * interval);
     });
   }
-  //3. vcf file No
+  //3. vcf file No  (make it contacts.mimetype)
   if (req.files && req.files.file.mimetype == "text/x-vcard") {
     console.log("User Provided vcf contacts");
     vcard.parseVcardFile(req.files.file.tempFilePath, function (err, contacts) {

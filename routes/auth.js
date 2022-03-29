@@ -35,8 +35,7 @@ router.use(
 router.use(passport.initialize());
 router.use(passport.session());
 router.use(function (req, res, next) {
-  // console.log(req.session);
-  // console.log(req.user);
+
   next();
 });
 
@@ -62,8 +61,7 @@ router.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 passport.serializeUser(function (user, done) {
-  // console.log("seralize user");
-  // console.log(user);
+
   done(null, user.id);
   // where is this user.id going? Are we supposed to access this anywhere?
 });
@@ -97,17 +95,7 @@ passport.use(
 
           // if the user is found, then log them in
           if (user) {
-            // console.log("user found");
-            // User.findOneAndUpdate(
-            //   { uid: profile.id },
-            //   { $set: { userType: "oldUser" } },
-            //   function (err, updated) {
-            //     if (!err) {
-            //       console.log("tab updated");
-            //     }
-            //   }
-            // );
-            // console.log(user);
+       
             return done(null, user); // user found, return that user
           } else {
             // console.log("below is new profile dtls");

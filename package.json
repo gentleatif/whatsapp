@@ -27,7 +27,7 @@
     "formidable": "^2.0.1",
     "http": "0.0.1-security",
     "mime-types": "^2.1.32",
-    "mongoose": "^6.2.8",
+    "mongoose": "^6.2.9",
     "passport": "^0.5.2",
     "passport-google-oauth20": "^2.0.0",
     "qr-creator": "^1.0.0",
@@ -39,7 +39,7 @@
     "socket.io": "2.3.0",
     "swissqrbill": "^3.2.0",
     "vcard-json": "^0.5.2",
-    "whatsapp-web.js": "latest"
+    "whatsapp-web.js": "^1.16.4"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
