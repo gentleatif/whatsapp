@@ -12,7 +12,7 @@
     "whatsapp-api",
     "node.js"
   ],
-  "author": "Atif Hussain",
+  "author": "",
   "license": "MIT",
   "dependencies": {
     "axios": "^0.20.0",
