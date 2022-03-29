@@ -35,7 +35,6 @@ router.use(
 router.use(passport.initialize());
 router.use(passport.session());
 router.use(function (req, res, next) {
-
   next();
 });
 
@@ -61,7 +60,6 @@ router.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 passport.serializeUser(function (user, done) {
-
   done(null, user.id);
   // where is this user.id going? Are we supposed to access this anywhere?
 });
@@ -79,7 +77,7 @@ passport.use(
       clientID:
         "927158530936-nrt2la41km9tq59jc5jggmqmns9li4oe.apps.googleusercontent.com",
       clientSecret: "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",
-      callbackURL: "http://localhost:8000/google/callback",
+      callbackURL: "https://whatsapp-2-0.herokuapp.com/google/callback",
     },
     function (accessToken, refreshToken, profile, done) {
       // getting profile info from here
@@ -95,7 +93,6 @@ passport.use(
 
           // if the user is found, then log them in
           if (user) {
-       
             return done(null, user); // user found, return that user
           } else {
             // console.log("below is new profile dtls");
