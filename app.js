@@ -8,14 +8,9 @@ const http = require("http");
 const fs = require("fs");
 const { phoneNumberFormatter } = require("./helpers/formatter");
 const fileUpload = require("express-fileupload");
-const axios = require("axios");
-const mime = require("mime-types");
 const vcard = require("vcard-json");
 const bodyParser = require("body-parser");
-const passport = require("passport");
-const port = process.env.PORT || 8000;
-const authRoutes = require("./routes/auth");
-
+const port = process.env.PORT;
 // const isLoggedIn = require("./helpers/auth");
 const app = express();
 // Note that this option available for versions 1.0.0 and newer.
@@ -45,72 +40,9 @@ app.use(
     extended: true,
   })
 );
-// my routes
-app.use("/", authRoutes);
 
 const client = new Client({
   authStrategy: new NoAuth(),
-});
-
-client.on("message", (msg) => {
-  if (msg.body == "!ping") {
-    msg.reply("pong");
-  } else if (msg.body == "good morning") {
-    msg.reply("Good Mrng");
-  } else if (msg.body == "!groups") {
-    client.getChats().then((chats) => {
-      const groups = chats.filter((chat) => chat.isGroup);
-
-      if (groups.length == 0) {
-        msg.reply("You have no group yet.");
-      } else {
-        let replyMsg = "*YOUR GROUPS*\n\n";
-        groups.forEach((group, i) => {
-          replyMsg += `ID: ${group.id._serialized}\nName: ${group.name}\n\n`;
-        });
-        replyMsg +=
-          "_You can use the group id to send a message to the group._";
-        msg.reply(replyMsg);
-      }
-    });
-  }
-
-  // Downloading media
-  // if (msg.hasMedia) {
-  //   msg.downloadMedia().then((media) => {
-  //     // To better understanding
-  //     // Please look at the console what data we get
-  //     console.log(media);
-
-  //     if (media) {
-  //       // The folder to store: change as you want!
-  //       // Create if not exists
-  //       const mediaPath = "./downloaded-media/";
-
-  //       if (!fs.existsSync(mediaPath)) {
-  //         fs.mkdirSync(mediaPath);
-  //       }
-
-  //       // Get the file extension by mime-type
-  //       const extension = mime.extension(media.mimetype);
-
-  //       // Filename: change as you want!
-  //       // I will use the time for this example
-  //       // Why not use media.filename? Because the value is not certain exists
-  //       const filename = new Date().getTime();
-
-  //       const fullFilename = mediaPath + filename + "." + extension;
-
-  //       // Save to file
-  //       try {
-  //         fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
-  //         console.log("File downloaded successfully!", fullFilename);
-  //       } catch (err) {
-  //         console.log("Failed to save the file:", err);
-  //       }
-  //     }
-  //   });
-  // }
 });
 
 client.initialize();
@@ -137,12 +69,6 @@ io.on("connection", function (socket) {
     client.emit("redirect", "/send-message");
 
     console.log("AUTHENTICATED");
-    // sessionCfg = session;
-    // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-    //   if (err) {
-    //     console.error(err);
-    //   }
-    // });
   });
 
   client.on("auth_failure", function (session) {
@@ -151,10 +77,7 @@ io.on("connection", function (socket) {
 
   client.on("disconnected", (reason) => {
     socket.emit("message", "Whatsapp is disconnected!");
-    // fs.unlinkSync(SESSION_FILE_PATH, function (err) {
-    //   if (err) return console.log(err);
-    //   console.log("Session file deleted!");
-    // });
+
     client.destroy();
     client.initialize();
   });
@@ -172,7 +95,7 @@ function isLoggedIn(req, res, next) {
   // if they aren't redirect them to the home page
   res.redirect("/");
 }
-app.get("/scan", isLoggedIn, (req, res) => {
+app.get("/", (req, res) => {
   // client.destroy();
   // client.initialize();
   res.sendFile("index.html", {
@@ -183,8 +106,6 @@ app.get("/scan", isLoggedIn, (req, res) => {
 // send user for auth when clicked on login icon
 
 app.get("/logout", function (req, res) {
-  client.destroy();
-  client.initialize();
   req.session.destroy(function (err) {
     res.clearCookie("remember_me", { path: "/" });
 
@@ -192,25 +113,21 @@ app.get("/logout", function (req, res) {
     res.redirect("/"); //Inside a callback… bulletproof!
   });
 });
-app.get("/", (req, res) => {
-  res.sendFile("auth.html", {
-    root: __dirname,
-  });
-});
+
 // Send message
-app.get("/send-message", isLoggedIn, (req, res) => {
+app.get("/send-message", (req, res) => {
   res.sendFile("message.html", {
     root: __dirname,
   });
 });
 //visit bulk msg page
-app.get("/send-bulkmsg", isLoggedIn, (req, res) => {
+app.get("/send-bulkmsg", (req, res) => {
   res.sendFile("bulkMsg.html", {
     root: __dirname,
   });
 });
 //visit bulk msg page
-app.get("/send-media", isLoggedIn, (req, res) => {
+app.get("/send-media", (req, res) => {
   res.sendFile("bulkMedia.html", {
     root: __dirname,
   });
@@ -242,7 +159,6 @@ app.post(
         message: "The number is not registered",
       });
     }
-    console.log(isRegisteredNumber);
     client
       .sendMessage(formattedNo, message)
       .then((response) => {
