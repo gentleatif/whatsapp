@@ -173,8 +173,8 @@ function isLoggedIn(req, res, next) {
   res.redirect("/");
 }
 app.get("/scan", isLoggedIn, (req, res) => {
-  client.destroy();
-  client.initialize();
+  // client.destroy();
+  // client.initialize();
   res.sendFile("index.html", {
     root: __dirname,
   });
