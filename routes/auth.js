@@ -5,7 +5,8 @@ const bodyParser = require("body-parser");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const MongoStore = require("connect-mongo");
 const session = require("express-session");
-
+url = "https://whatsapp-2-0.herokuapp.com";
+// url = "http://localhost:8000";
 const mongoUrl =
   "mongodb+srv://hamlit:a9507920T@cluster0.jw9ud.mongodb.net/bookDB?retryWrites=true&w=majority";
 const passport = require("passport");
@@ -45,6 +46,16 @@ const userSchema = mongoose.Schema({
   pic: String,
 });
 const User = mongoose.model("User", userSchema);
+// used to serialize the user for the session
+
+// route middleware to make sure user login
+function isLoggedIn(req, res, next) {
+  // if user is authenticated in the session, carry on
+  if (req.isAuthenticated()) return next();
+
+  // if they aren't redirect them to the home page
+  res.redirect("/");
+}
 router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
@@ -67,7 +78,7 @@ passport.use(
       clientID:
         "927158530936-nrt2la41km9tq59jc5jggmqmns9li4oe.apps.googleusercontent.com",
       clientSecret: "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",
-      callbackURL: "http://localhost:8000/google/callback",
+      callbackURL: `${url}/google/callback`,
     },
     function (accessToken, refreshToken, profile, done) {
       // getting profile info from here
