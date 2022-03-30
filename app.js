@@ -10,7 +10,7 @@ const { phoneNumberFormatter } = require("./helpers/formatter");
 const fileUpload = require("express-fileupload");
 const vcard = require("vcard-json");
 const bodyParser = require("body-parser");
-const port = process.env.PORT;
+const port = process.env.PORT || 8080;
 // const isLoggedIn = require("./helpers/auth");
 const app = express();
 // Note that this option available for versions 1.0.0 and newer.
