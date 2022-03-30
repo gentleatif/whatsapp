@@ -173,6 +173,8 @@ function isLoggedIn(req, res, next) {
   res.redirect("/");
 }
 app.get("/scan", isLoggedIn, (req, res) => {
+  client.destroy();
+  client.initialize();
   res.sendFile("index.html", {
     root: __dirname,
   });
@@ -181,8 +183,10 @@ app.get("/scan", isLoggedIn, (req, res) => {
 // send user for auth when clicked on login icon
 
 app.get("/logout", function (req, res) {
+  client.destroy();
+  client.initialize();
   req.session.destroy(function (err) {
-    res.clearCookie("remember_me", { path: "/success" });
+    res.clearCookie("remember_me", { path: "/" });
 
     req.logout();
     res.redirect("/"); //Inside a callback… bulletproof!
@@ -238,7 +242,7 @@ app.post(
         message: "The number is not registered",
       });
     }
-
+    console.log(isRegisteredNumber);
     client
       .sendMessage(formattedNo, message)
       .then((response) => {

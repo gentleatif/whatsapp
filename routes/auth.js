@@ -45,16 +45,6 @@ const userSchema = mongoose.Schema({
   pic: String,
 });
 const User = mongoose.model("User", userSchema);
-// used to serialize the user for the session
-
-// route middleware to make sure user login
-function isLoggedIn(req, res, next) {
-  // if user is authenticated in the session, carry on
-  if (req.isAuthenticated()) return next();
-
-  // if they aren't redirect them to the home page
-  res.redirect("/");
-}
 router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
@@ -77,7 +67,7 @@ passport.use(
       clientID:
         "927158530936-nrt2la41km9tq59jc5jggmqmns9li4oe.apps.googleusercontent.com",
       clientSecret: "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",
-      callbackURL: "https://whatsapp-2-0.herokuapp.com/google/callback",
+      callbackURL: "http://localhost:8000/google/callback",
     },
     function (accessToken, refreshToken, profile, done) {
       // getting profile info from here
