@@ -1,4 +1,4 @@
-const { Client, MessageMedia, NoAuth } = require("whatsapp-web.js");
+const { Client, ClientInfo, MessageMedia, NoAuth } = require("whatsapp-web.js");
 const csv = require("csvtojson");
 const express = require("express");
 const { body, validationResult } = require("express-validator");
@@ -8,9 +8,13 @@ const http = require("http");
 const fs = require("fs");
 const { phoneNumberFormatter } = require("./helpers/formatter");
 const fileUpload = require("express-fileupload");
+const axios = require("axios");
+const mime = require("mime-types");
 const vcard = require("vcard-json");
 const bodyParser = require("body-parser");
-const port = process.env.PORT || 8080;
+const { redirect } = require("express/lib/response");
+const port = process.env.PORT || 8000;
+
 // const isLoggedIn = require("./helpers/auth");
 const app = express();
 // Note that this option available for versions 1.0.0 and newer.
@@ -45,6 +49,67 @@ const client = new Client({
   authStrategy: new NoAuth(),
 });
 
+client.on("message", (msg) => {
+  if (msg.body == "!ping") {
+    msg.reply("pong");
+  } else if (msg.body == "good morning") {
+    msg.reply("Good Mrng");
+  } else if (msg.body == "!groups") {
+    client.getChats().then((chats) => {
+      const groups = chats.filter((chat) => chat.isGroup);
+
+      if (groups.length == 0) {
+        msg.reply("You have no group yet.");
+      } else {
+        let replyMsg = "*YOUR GROUPS*\n\n";
+        groups.forEach((group, i) => {
+          replyMsg += `ID: ${group.id._serialized}\nName: ${group.name}\n\n`;
+        });
+        replyMsg +=
+          "_You can use the group id to send a message to the group._";
+        msg.reply(replyMsg);
+      }
+    });
+  }
+
+  // Downloading media
+  // if (msg.hasMedia) {
+  //   msg.downloadMedia().then((media) => {
+  //     // To better understanding
+  //     // Please look at the console what data we get
+  //     console.log(media);
+
+  //     if (media) {
+  //       // The folder to store: change as you want!
+  //       // Create if not exists
+  //       const mediaPath = "./downloaded-media/";
+
+  //       if (!fs.existsSync(mediaPath)) {
+  //         fs.mkdirSync(mediaPath);
+  //       }
+
+  //       // Get the file extension by mime-type
+  //       const extension = mime.extension(media.mimetype);
+
+  //       // Filename: change as you want!
+  //       // I will use the time for this example
+  //       // Why not use media.filename? Because the value is not certain exists
+  //       const filename = new Date().getTime();
+
+  //       const fullFilename = mediaPath + filename + "." + extension;
+
+  //       // Save to file
+  //       try {
+  //         fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
+  //         console.log("File downloaded successfully!", fullFilename);
+  //       } catch (err) {
+  //         console.log("Failed to save the file:", err);
+  //       }
+  //     }
+  //   });
+  // }
+});
+
 client.initialize();
 
 // Socket IO
@@ -59,16 +124,25 @@ io.on("connection", function (socket) {
     });
   });
 
-  client.on("ready", (e) => {
-    socket.emit("ready", "Whatsapp is ready!");
+  client.on("ready", async () => {
     socket.emit("message", "Whatsapp is ready!");
+    console.log("READY");
+    var destination = "/send-message";
+    client.emit("redirect", destination);
+    // client.emit("redirect", "/send-message");
   });
   client.on("authenticated", (e) => {
     socket.emit("authenticated", "Whatsapp is authenticated!");
     socket.emit("message", "Whatsapp is authenticated!");
-    client.emit("redirect", "/send-message");
 
+    redirect("/send-message");
     console.log("AUTHENTICATED");
+    // sessionCfg = session;
+    // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+    //   if (err) {
+    //     console.error(err);
+    //   }
+    // });
   });
 
   client.on("auth_failure", function (session) {
@@ -77,7 +151,10 @@ io.on("connection", function (socket) {
 
   client.on("disconnected", (reason) => {
     socket.emit("message", "Whatsapp is disconnected!");
-
+    // fs.unlinkSync(SESSION_FILE_PATH, function (err) {
+    //   if (err) return console.log(err);
+    //   console.log("Session file deleted!");
+    // });
     client.destroy();
     client.initialize();
   });
@@ -96,8 +173,6 @@ function isLoggedIn(req, res, next) {
   res.redirect("/");
 }
 app.get("/", (req, res) => {
-  // client.destroy();
-  // client.initialize();
   res.sendFile("index.html", {
     root: __dirname,
   });
@@ -107,15 +182,20 @@ app.get("/", (req, res) => {
 
 app.get("/logout", function (req, res) {
   req.session.destroy(function (err) {
-    res.clearCookie("remember_me", { path: "/" });
+    res.clearCookie("remember_me", { path: "/success" });
 
     req.logout();
     res.redirect("/"); //Inside a callback… bulletproof!
   });
 });
-
+app.get("/", (req, res) => {
+  res.sendFile("auth.html", {
+    root: __dirname,
+  });
+});
 // Send message
 app.get("/send-message", (req, res) => {
+  console.log(client.info.wid.user);
   res.sendFile("message.html", {
     root: __dirname,
   });
@@ -150,6 +230,7 @@ app.post(
     const formattedNo = `91${req.body.number}@c.us`;
 
     const message = req.body.message;
+    console.log(formattedNo, message);
 
     const isRegisteredNumber = await checkRegisteredNumber(formattedNo);
 
@@ -159,6 +240,7 @@ app.post(
         message: "The number is not registered",
       });
     }
+
     client
       .sendMessage(formattedNo, message)
       .then((response) => {

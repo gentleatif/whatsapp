@@ -1,5 +1,4 @@
 const form = document.querySelector("form");
-console.log(form);
 const number = document.getElementById("number").value;
 const message = document.getElementById("message").value;
 
